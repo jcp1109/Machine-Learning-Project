@@ -1,0 +1,202 @@
+# %%
+# Preprocessing Libraries
+import pandas as pd
+import numpy as np
+from datetime import datetime, date
+
+# Machine Learning
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+
+
+
+# %%
+train_df = pd.read_csv('fraudTrain.csv', index_col= 0)
+test_df = pd.read_csv('fraudTest.csv', index_col= 0)
+combine = [train_df, test_df]
+
+# %%
+train_df.info()
+
+# %%
+train_df.describe()
+
+# %%
+def age(born):
+    born = datetime.strptime(born, "%Y-%m-%d").date()
+    today = date.today()
+    return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+  
+train_df['age'] = train_df['dob'].apply(age)
+test_df['age'] = test_df['dob'].apply(age)
+train_df = train_df.drop('dob', axis= 1)
+test_df = test_df.drop('dob', axis=1)
+
+combine = [train_df, test_df]
+
+# %%
+print(train_df.columns.values)
+
+# %%
+train_df[['age', 'is_fraud']].groupby(['age'], as_index=False).mean().sort_values(by='is_fraud', ascending=False)
+
+# %%
+train_df[['gender', 'is_fraud']].groupby(['gender'], as_index=False).mean().sort_values(by='is_fraud', ascending=False)
+
+# %%
+for dataset in combine:
+    dataset['gender'] = dataset['gender'].map( {'F': 1, 'M': 0} ).astype(np.int64)
+
+# %%
+train_df[['gender', 'is_fraud']].groupby(['gender'], as_index=False).mean().sort_values(by='is_fraud', ascending=False)
+
+
+# %%
+train_df['trans_date_trans_time'] = pd.to_datetime(train_df['trans_date_trans_time'])
+test_df['trans_date_trans_time'] = pd.to_datetime(test_df['trans_date_trans_time'])
+
+train_df['hour'] = train_df['trans_date_trans_time'].dt.strftime('%H')
+test_df['hour'] = test_df['trans_date_trans_time'].dt.strftime('%H')
+combine = [train_df, test_df]
+
+# %%
+train_df['weekday'] = train_df['trans_date_trans_time'].dt.strftime('%w')
+test_df['weekday'] = test_df['trans_date_trans_time'].dt.strftime('%w')
+combine = [train_df, test_df]
+
+# %%
+train_df[['weekday', 'is_fraud']].groupby(['weekday'], as_index=False).mean().sort_values(by='is_fraud', ascending=False)
+
+# %%
+train_df['weekday'] = train_df['weekday'].values.astype(np.int64)
+test_df['weekday'] = test_df['weekday'].values.astype(np.int64)
+
+# %%
+train_df[['hour', 'is_fraud']].groupby(['hour'], as_index=False).mean().sort_values(by='is_fraud', ascending=False)
+
+# %%
+train_df['hour'] = train_df['hour'].values.astype(np.int64)
+test_df['hour'] = test_df['hour'].values.astype(np.int64)
+
+# %%
+train_df[['merchant', 'is_fraud']].groupby(['merchant'], as_index=False).mean().sort_values(by='is_fraud', ascending=False)
+
+# %%
+train_df[['state', 'is_fraud']].groupby(['state'], as_index=False).mean().sort_values(by='is_fraud', ascending=False)
+
+# %%
+train_df[['category', 'is_fraud']].groupby(['category'], as_index=False).mean().sort_values(by='is_fraud', ascending=False)
+
+# %%
+for dataset in combine:
+    dataset['category'] = dataset['category'].map( {'entertainment': 1, 'food_dining': 2, 
+                                                    'gas_transport': 3, 'grocery_net': 4, 'grocery_pos': 5, 'health_fitness': 6, 'home': 7, 'kids_pets': 8, 
+                                                    'misc_net': 9, 'misc_pos': 10, 'personal_care': 11, 'shopping_net': 12, 'shopping_gas': 13, 'travel': 14} )
+
+# %%
+train_df['category'] = train_df['category'].values.astype(np.int64)
+test_df['category'] = test_df['category'].values.astype(np.int64)
+
+# %%
+train_df[['category', 'is_fraud']].groupby(['category'], as_index=False).mean().sort_values(by='is_fraud', ascending=False)
+
+# %%
+train_df = train_df.drop('trans_date_trans_time', axis= 1)
+train_df = train_df.drop('merchant', axis=1)
+train_df = train_df.drop('cc_num', axis= 1)
+train_df = train_df.drop('amt', axis= 1)
+train_df = train_df.drop('first', axis= 1)
+train_df = train_df.drop('last', axis= 1)
+train_df = train_df.drop('street', axis= 1)
+train_df = train_df.drop('city', axis= 1)
+train_df = train_df.drop('state', axis=1)
+train_df = train_df.drop('zip', axis= 1)
+train_df = train_df.drop('lat', axis= 1)
+train_df = train_df.drop('long', axis= 1)
+train_df = train_df.drop('city_pop', axis= 1)
+train_df = train_df.drop('job', axis= 1)
+train_df = train_df.drop('trans_num', axis= 1)
+train_df = train_df.drop('unix_time', axis= 1)
+train_df = train_df.drop('merch_lat', axis= 1)
+train_df = train_df.drop('merch_long', axis= 1)
+
+
+test_df = test_df.drop('trans_date_trans_time', axis= 1)
+test_df = test_df.drop('merchant', axis=1)
+test_df = test_df.drop('amt', axis= 1)
+test_df = test_df.drop('first', axis= 1)
+test_df = test_df.drop('last', axis= 1)
+test_df = test_df.drop('street', axis= 1)
+test_df = test_df.drop('city', axis= 1)
+test_df = test_df.drop('state', axis=1)
+test_df = test_df.drop('zip', axis= 1)
+test_df = test_df.drop('lat', axis= 1)
+test_df = test_df.drop('long', axis= 1)
+test_df = test_df.drop('city_pop', axis= 1)
+test_df = test_df.drop('job', axis= 1)
+test_df = test_df.drop('trans_num', axis= 1)
+test_df = test_df.drop('unix_time', axis= 1)
+test_df = test_df.drop('merch_lat', axis= 1)
+test_df = test_df.drop('merch_long', axis= 1)
+
+combine = [train_df, test_df]
+
+
+# %%
+train_df.info()
+
+# %%
+train_df.describe()
+
+# %%
+test_df = test_df.drop('is_fraud', axis=1)
+
+
+combine = [train_df, test_df]
+
+# %%
+X_train = train_df.drop("is_fraud", axis=1)
+Y_train = train_df["is_fraud"]
+X_test  = test_df.drop("cc_num", axis=1).copy()
+X_train.shape, Y_train.shape, X_test.shape
+
+# %%
+test_df
+
+# %%
+# Logistic Regression
+
+logreg = LogisticRegression()
+logreg.fit(X_train, Y_train)
+Y_pred = logreg.predict(X_test)
+acc_log = round(logreg.score(X_train, Y_train) * 100, 2)
+acc_log
+
+# %%
+coeff_df = pd.DataFrame(train_df.columns.delete(2))
+coeff_df.columns = ['Feature']
+coeff_df["Correlation"] = pd.Series(logreg.coef_[0])
+
+coeff_df.sort_values(by='Correlation', ascending=False)
+
+# %%
+# Decision Tree
+
+decision_tree = DecisionTreeClassifier()
+decision_tree.fit(X_train, Y_train)
+Y_pred = decision_tree.predict(X_test)
+acc_decision_tree = round(decision_tree.score(X_train, Y_train) * 100, 2)
+acc_decision_tree
+
+# %%
+# Random Forest
+
+random_forest = RandomForestClassifier(n_estimators=10)
+random_forest.fit(X_train, Y_train)
+Y_pred = random_forest.predict(X_test)
+random_forest.score(X_train, Y_train)
+acc_random_forest = round(random_forest.score(X_train, Y_train) * 100, 2)
+acc_random_forest
+
+
